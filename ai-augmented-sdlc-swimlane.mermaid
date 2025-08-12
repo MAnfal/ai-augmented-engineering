@@ -1,0 +1,81 @@
+flowchart LR
+
+  %% Lanes are subgraphs arranged left-to-right
+  %% Lane 1: PM / Program Management
+  subgraph L1[PM / Program Management]
+    direction TB
+    A0[Project Initiation & Charter<br/>Business case, scope, constraints]
+    A1[Gather & Analyze Requirements<br/>Stakeholders, edge cases with thinking model]
+    A2{Requirements clear?}
+    A3[Create PRD<br/>Functional + Non-Functional]
+    A4{PRD comprehensive?}
+    B1[Feasibility & Planning<br/>Timeline, resources, risks, budget]
+    A0 --> A1 --> A2
+    A2 -- No --> A1
+    A2 -- Yes --> A3 --> A4
+    A4 -- No --> A3
+    A4 -- Yes --> B1
+  end
+
+  %% Lane 2: Engineer (Architecture & Orchestration)
+  subgraph L2[Engineer]
+    direction TB
+    B2[Research Systems & Tech Stack<br/>Repos, case studies, select stack]
+    B3[Create System Architecture Docs<br/>HL design, detailed design, data flow, UI, DB]
+    B6[Create Guardrails Docs<br/>Code org, conventions, cursor rules]
+    B4[Break Tasks into Docs<br/>Module specs, acceptance criteria]
+    X1{Design approved?}
+    X2{Sec/Privacy/Perf approved?}
+    C0[Prepare AI Context<br/>Package PRD, arch, guardrails, task docs]
+  end
+
+  %% Lane 3: AI Assistant i.e. Cursor
+  subgraph L3[AI Assistant i.e. Cursor]
+    direction TB
+    C1[Implementation<br/>AI writes code using docs and rules]
+  end
+
+  %% Lane 4: QA / DevOps
+  subgraph L4[QA / DevOps]
+    direction TB
+    Q1[CI Pipeline<br/>lint, typecheck, SAST, SCA, unit, coverage]
+    C2{Meets guidelines & acceptance?}
+    D1[Testing & QA<br/>Integration, system, e2e]
+    D2{All tests pass?}
+    E0[AI/Feature Evals<br/>Golden tests, prompt evals, UX checks]
+    E2{Evals pass?}
+    E1[Deployment<br/>Canary/blue-green, feature flags, notes]
+    F1[Monitoring & Maintenance<br/>Logs, metrics, traces, SLOs, runbooks]
+    F2[Backlog & Triage<br/>Prioritize issues and improvements]
+    G1[Project Closing<br/>Lessons learned, finalize reports]
+  end
+
+  %% Cross-lane flows
+  %% PM -> Engineer
+  B1 --> B2
+  B2 --> B3 --> B4
+  B2 --> B6
+  B3 --> X1
+  X1 -- No --> B3
+  X1 -- Yes --> X2
+  X2 -- No --> B3
+  X2 -- Yes --> C0
+
+  %% Engineer -> AI
+  C0 -- Feed to cursor as markdown --> C1
+
+  %% AI -> QA/DevOps
+  C1 --> Q1 --> C2
+  C2 -- No --> C1
+  C2 -- Yes --> D1
+  D1 --> D2
+  D2 -- No --> C1
+  D2 -- Yes --> E0
+  E0 --> E2
+  E2 -- No --> C1
+  E2 -- Yes --> E1
+  E1 --> F1 --> F2
+
+  %% Feedback loops
+  F2 --> B4
+  F1 --> G1
